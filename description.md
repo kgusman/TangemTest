@@ -25,10 +25,17 @@ And also update public key of the user in the code (which will be removed from s
 ## Add new signatory (card)
 
 1. Press `Scan` button
-2. Scan manager card
-3. Press `Add card to a user`
-4. Scan manager card and hold it till countdown ends
+2. Scan second user card
+3. Press `Grant Permission`
+4. Scan user card and hold it till countdown ends
 5. Wait for `Transaction has been sent` message
+6. Press `Scan` button
+7. Scan manager card
+8. Press `Add card to a user`
+9. Scan manager card and hold it till countdown ends
+10. Wait for `Transaction has been sent` message
+
+Steps 1-5 can be skipped, if genesis block contains transaction that gives permissions for manager to add signatory to the user.
 
 # Suggestions
 
