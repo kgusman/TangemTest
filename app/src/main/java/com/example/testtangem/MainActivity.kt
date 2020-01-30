@@ -1,6 +1,8 @@
 package com.example.testtangem
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -35,13 +37,12 @@ class MainActivity : AppCompatActivity() {
     private val domain = "tangem"
     private val userAtDomain = "%s@%s".format(userAccountName, domain)
     private val managerAtDomain = "%s@%s".format(managerAccountName, domain)
-    private val userPublicKey = DatatypeConverter.parseHexBinary("d939cd169b85697ca34f4f19b880567d8e2aa5451bc5290af55cdac1025a6ba3")
+    private var userPublicKey = ""
 
     private val nfcManager = NfcManager()
     private val cardManagerDelegate: DefaultCardManagerDelegate =
         DefaultCardManagerDelegate(nfcManager.reader)
     private val cardManager = CardManager(nfcManager.reader, cardManagerDelegate)
-    private val userPublicKeys: ArrayList<ByteArray?> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -56,6 +57,8 @@ class MainActivity : AppCompatActivity() {
         val signButton: Button = findViewById(R.id.signButton)!!
         val lostCardButton: Button = findViewById(R.id.lostCardButton)!!
         val irohaIpAddressEditText: EditText = findViewById(R.id.ipAddress)
+        val cardPublicKeyText: EditText = findViewById(R.id.publicKey)
+        val savePublicKeyToRemoveButton: Button = findViewById(R.id.savePublicKey)
         var card: Card? = null
 
         addNewUserCardButton.setOnClickListener { _ ->
@@ -65,9 +68,12 @@ class MainActivity : AppCompatActivity() {
             } else if (card == null) {
                 toast("Please, scan your card first")
                 return@setOnClickListener
+            } else if (userPublicKey.equals("")) {
+                toast("Please, save public key to add")
+                return@setOnClickListener
             }
 
-            val unsignedTransaction = createAddSignatoryTransaction(userAtDomain, userPublicKey)
+            val unsignedTransaction = createAddSignatoryTransaction(userAtDomain, DatatypeConverter.parseHexBinary(userPublicKey))
 
             cardManager.sign(
                 arrayOf(unsignedTransaction.payload()),
@@ -145,6 +151,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        savePublicKeyToRemoveButton.setOnClickListener { _ ->
+            if (card == null) {
+                toast("Please, scan your card first")
+                return@setOnClickListener
+            }
+            userPublicKey = Hex.toHexString(card!!.walletPublicKey)
+            toast("Successfully saved public key to remove")
+        }
+
+
+
         // First, we have to scan the card to get its id and public key
         scanButton.setOnClickListener { _ ->
             cardManager.scanCard { taskEvent ->
@@ -154,6 +171,7 @@ class MainActivity : AppCompatActivity() {
                             is ScanEvent.OnReadEvent -> {
                                 // Handle returned card data
                                 card = (taskEvent.data as ScanEvent.OnReadEvent).card
+                                cardPublicKeyText.setText(Hex.toHexString(card!!.walletPublicKey))
                             }
                         }
                     }
@@ -165,9 +183,13 @@ class MainActivity : AppCompatActivity() {
             if (irohaIpAddressEditText.text.toString().isEmpty()) {
                 toast("Please, set Iroha node IP address")
                 return@setOnClickListener
+            } else if (userPublicKey.equals("")) {
+                toast("Please, set public key to remove")
+                return@setOnClickListener
             }
 
-            val unsignedTransaction = createRemoveSignatoryTransaction(userPublicKey)
+
+            val unsignedTransaction = createRemoveSignatoryTransaction(DatatypeConverter.parseHexBinary(userPublicKey))
             // Sign it
             cardManager.sign(
                 arrayOf(unsignedTransaction.payload()),
