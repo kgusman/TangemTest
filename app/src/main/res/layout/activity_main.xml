@@ -28,12 +28,11 @@
 
     <EditText
             android:id="@+id/publicKey"
+            android:hint="Key"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
             android:inputType="text"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
             android:textSize="20dp" />
 
     <Button
